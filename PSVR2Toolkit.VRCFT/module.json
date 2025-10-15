@@ -10,7 +10,7 @@
   "ModuleName": "PlayStation VR2 Module",
   "ModuleDescription": "Provides gaze tracking data for the PlayStation VR2",
   "UsageInstructions": "Requires PlayStation VR2 drivers with DriverEx (from PlayStation VR2 Toolkit) installed",
-  "DownloadUrl": "https://github.com/BnuuySolutions/PSVR2Toolkit.VRCFT/releases/download/v0.01/PSVR2Toolkit.VRCFT.zip",
+  "DownloadUrl": "https://github.com/BnuuySolutions/PSVR2Toolkit.VRCFT/releases/download/v0.03/PSVR2Toolkit.VRCFT.zip",
   "ModulePageUrl": "https://github.com/BnuuySolutions/PSVR2Toolkit.VRCFT",
   "DllFileName": "PSVR2Toolkit.VRCFT.dll"
 }
