@@ -51,14 +51,14 @@ namespace PSVR2Toolkit.VRCFT {
                 var eyeTrackingData = IpcClient.Instance().RequestEyeTrackingData();
 
                 if ( eyeTrackingData.leftEye.isBlinkValid ) {
-                    float leftOpenness = eyeTrackingData.leftEye.blink ? 0 : 1;
+                    float leftOpenness = eyeTrackingData.leftEye.isOpenEnabled ? eyeTrackingData.leftEye.open : (eyeTrackingData.leftEye.blink ? 0 : 1);
                     if ( m_leftEyeOpenLowPass != null ) {
                         leftOpenness = m_leftEyeOpenLowPass.FilterValue(leftOpenness);
                     }
                     UnifiedTracking.Data.Eye.Left.Openness = leftOpenness;
                 }
                 if ( eyeTrackingData.rightEye.isBlinkValid ) {
-                    float rightOpenness = eyeTrackingData.rightEye.blink ? 0 : 1;
+                    float rightOpenness = eyeTrackingData.rightEye.isOpenEnabled ? eyeTrackingData.rightEye.open : (eyeTrackingData.rightEye.blink ? 0 : 1);
                     if ( m_rightEyeOpenLowPass != null ) {
                         rightOpenness = m_rightEyeOpenLowPass.FilterValue(rightOpenness);
                     }

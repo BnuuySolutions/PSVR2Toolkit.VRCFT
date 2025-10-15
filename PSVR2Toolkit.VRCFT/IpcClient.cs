@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace PSVR2Toolkit.CAPI {
     public class IpcClient {
         private const ushort IPC_SERVER_PORT = 3364;
-        private const ushort k_unIpcVersion = 1;
+        private const ushort k_unIpcVersion = 2;
 
         private static IpcClient m_pInstance;
 
@@ -22,8 +22,9 @@ namespace PSVR2Toolkit.CAPI {
         private TaskCompletionSource<CommandDataServerGazeDataResult>? m_gazeTask;
         private CancellationTokenSource m_forceShutdownToken;
         private ILogger m_logger;
+        private ushort m_serverIpcVersion = k_unIpcVersion;
         private int m_gazePumpPeriodMs = 8; // 120Hz
-        private CommandDataServerGazeDataResult? m_lastGazeState = null;
+        private CommandDataServerGazeDataResult2? m_lastGazeState = null;
 
         public static IpcClient Instance() {
             if ( m_pInstance == null ) {
@@ -144,6 +145,32 @@ namespace PSVR2Toolkit.CAPI {
             }
         }
 
+        private GazeEyeResult2 UpgradeGazeEyeResult(GazeEyeResult eye)
+        {
+            return new GazeEyeResult2
+            {
+                isGazeOriginValid = eye.isGazeOriginValid,
+                gazeOriginMm = eye.gazeOriginMm,
+                isGazeDirValid = eye.isGazeDirValid,
+                gazeDirNorm = eye.gazeDirNorm,
+                isPupilDiaValid = eye.isPupilDiaValid,
+                pupilDiaMm = eye.pupilDiaMm,
+                isBlinkValid = eye.isBlinkValid,
+                blink = eye.blink,
+                isOpenEnabled = false,
+                open = 0f
+            };
+        }
+
+        private CommandDataServerGazeDataResult2 UpgradeGazeDataResult(CommandDataServerGazeDataResult result)
+        {
+            return new CommandDataServerGazeDataResult2
+            {
+                leftEye = UpgradeGazeEyeResult(result.leftEye),
+                rightEye = UpgradeGazeEyeResult(result.rightEye)
+            };
+        }
+
         private void HandleIpcCommand(byte[] pBuffer, int bytesReceived) {
             CommandHeader header = ByteArrayToStructure<CommandHeader>(pBuffer, 0);
 
@@ -156,6 +183,7 @@ namespace PSVR2Toolkit.CAPI {
                 case ECommandType.ServerHandshakeResult: {
                         if ( header.dataLen == Marshal.SizeOf<CommandDataServerHandshakeResult>() ) {
                             CommandDataServerHandshakeResult response = ByteArrayToStructure<CommandDataServerHandshakeResult>(pBuffer, Marshal.SizeOf<CommandHeader>());
+                            m_serverIpcVersion = response.ipcVersion;
                             switch ( response.result ) {
                                 case EHandshakeResult.Success: {
                                         m_logger.LogInformation("[IPC_CLIENT] Handshake successful!");
@@ -174,10 +202,18 @@ namespace PSVR2Toolkit.CAPI {
                         break;
                     }
                 case ECommandType.ServerGazeDataResult: {
-                        if ( header.dataLen == Marshal.SizeOf<CommandDataServerGazeDataResult>() ) {
-                            CommandDataServerGazeDataResult response = ByteArrayToStructure<CommandDataServerGazeDataResult>(pBuffer, Marshal.SizeOf<CommandHeader>());
-                            m_lastGazeState = response;
+                        if ( m_serverIpcVersion == 1 ) {
+                            if ( header.dataLen == Marshal.SizeOf<CommandDataServerGazeDataResult>() ) {
+                                CommandDataServerGazeDataResult response = ByteArrayToStructure<CommandDataServerGazeDataResult>(pBuffer, Marshal.SizeOf<CommandHeader>());
+                                m_lastGazeState = UpgradeGazeDataResult(response);
 
+                            }
+                        } else {
+                            if ( header.dataLen == Marshal.SizeOf<CommandDataServerGazeDataResult2>() ) {
+                                CommandDataServerGazeDataResult2 response = ByteArrayToStructure<CommandDataServerGazeDataResult2>(pBuffer, Marshal.SizeOf<CommandHeader>());
+                                m_lastGazeState = response;
+
+                            }
                         }
                         break;
                     }
@@ -249,13 +285,13 @@ namespace PSVR2Toolkit.CAPI {
             return structure;
         }
 
-        public CommandDataServerGazeDataResult RequestEyeTrackingData() {
+        public CommandDataServerGazeDataResult2 RequestEyeTrackingData() {
 
             if ( !m_running ) {
-                return new CommandDataServerGazeDataResult();
+                return new CommandDataServerGazeDataResult2();
             }
 
-            return m_lastGazeState ?? new CommandDataServerGazeDataResult();
+            return m_lastGazeState ?? new CommandDataServerGazeDataResult2();
         }
 
         public void TriggerEffectDisable(EVRControllerType controllerType) {
