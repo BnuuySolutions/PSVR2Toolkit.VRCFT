@@ -18,6 +18,10 @@
     <None Update="module.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="Libs\psvr2_toolkit_capi_loader.dll">
+      <Link>psvr2_toolkit_capi_loader.dll</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
   <ItemGroup>
@@ -34,7 +38,7 @@
   </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="copy /Y &quot;$(TargetDir)$(ProjectName).dll&quot; &quot;$(AppData)\VRCFaceTracking\CustomLibs\7beecf37-5f4d-4ecd-bbb1-1767e115e140\PSVR2Toolkit.VRCFT.dll&quot;&#xD;&#xA;if $(ConfigurationName) == Release (powershell.exe -Command Compress-Archive -Path '$(TargetDir)\$(ProjectName).dll', '$(TargetDir)\module.json' -DestinationPath '$(TargetDir)\PSVR2Toolkit.VRCFT.zip' -Force)" />
+    <Exec Command="copy /Y &quot;$(TargetDir)$(ProjectName).dll&quot; &quot;$(AppData)\VRCFaceTracking\CustomLibs\7beecf37-5f4d-4ecd-bbb1-1767e115e140\PSVR2Toolkit.VRCFT.dll&quot;&#xD;&#xA;copy /Y &quot;$(TargetDir)psvr2_toolkit_capi_loader.dll&quot; &quot;$(AppData)\VRCFaceTracking\CustomLibs\7beecf37-5f4d-4ecd-bbb1-1767e115e140\psvr2_toolkit_capi_loader.dll&quot;&#xD;&#xA;if $(ConfigurationName) == Release (powershell.exe -Command Compress-Archive -Path '$(TargetDir)\$(ProjectName).dll', '$(TargetDir)\psvr2_toolkit_capi_loader.dll', '$(TargetDir)\module.json' -DestinationPath '$(TargetDir)\PSVR2Toolkit.VRCFT.zip' -Force)" />
   </Target>
 
 </Project>
